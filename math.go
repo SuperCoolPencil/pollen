@@ -5,7 +5,7 @@ import "math"
 // OptimalM calculates the required bit array size (m).
 // n: expected number of items
 // p: acceptable false positive probability
-func OptimalM(n uint64, p float64) uint6 {
+func OptimalM(n uint64, p float64) uint64 {
 	// Formula: m = -(n * ln(p)) / (ln(2)^2)
 	numerator := float64(-n) * math.Log(p)
 	denominator := math.Pow(math.Log(2), 2)
