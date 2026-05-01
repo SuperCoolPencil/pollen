@@ -45,13 +45,35 @@ func (f *BloomFilter) Add(data []byte) {
 		targetBit := combinedHash % f.m
 
 		blockIndex := targetBit / 64
-		blockOffset := targetBit % 64
+		bitOffset := targetBit % 64
 
-		f.bitset[blockIndex] |= 1 << blockOffset
+		f.bitset[blockIndex] |= 1 << bitOffset
 	}
 }
 func (f *BloomFilter) Check(data []byte) bool {
 
+	baseHash := hash.Hash(data)
+	h1 := uint32(baseHash >> 32)
+	h2 := uint32(baseHash)
+
+	for i := uint64(0); i < uint64(f.k); i++ {
+
+		// Use double hashing to add non-linearity (https://en.wikipedia.org/wiki/Double_hashing#Enhanced_double_hashing)
+		cubic := (i*i*i - i) / 6
+
+		combinedHash := uint64(h1) + (i * uint64(h2)) + cubic
+
+		targetBit := combinedHash % f.m
+
+		blockIndex := targetBit / 64
+		bitOffset := targetBit % 64
+
+		if (f.bitset[blockIndex] & (1 << bitOffset)) == 0 {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (f *BloomFilter) Reset() {
